@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   Cadence: fitness and wellness app
+  </title>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=Instrument+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+  <style>
+   :root{
+  --mist:#F1F4F3;
+  --card:#FFFFFF;
+  --ink:#0F1614;
+  --ink-2:#5A6663;
+  --line:#DFE5E3;
+  --indigo:#2B4BD8;      /* action */
+  --indigo-soft:#EAEEFC;
+
+  --rest:#8E9AA8;        /* effort scale */
+  --easy:#3E9E6E;
+  --steady:#D1912B;
+  --hard:#C4553A;
+
+  --r-sm:10px; --r-md:16px; --r-lg:22px; --r-full:999px;
+  --f-num:"Space Grotesk","Helvetica Neue",Arial,sans-serif;
+  --f-ui:"Instrument Sans","Helvetica Neue",Arial,sans-serif;
+  --desk:#1A1F1E;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--desk);color:var(--ink);font-family:var(--f-ui);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:left}
+h1,h2,h3{margin:0;font-family:var(--f-num);font-weight:600;line-height:1.1;letter-spacing:-.02em}
+:focus-visible{outline:2px solid var(--indigo);outline-offset:2px;border-radius:4px}
+
+/* Page shell */
+.wrap{max-width:1180px;margin:0 auto;padding:clamp(24px,5vw,56px) clamp(16px,4vw,40px) 80px;
+  display:grid;grid-template-columns:390px 1fr;gap:clamp(32px,5vw,64px);align-items:start;color:#EAEEED}
+.doc .kicker{color:#8FA0B8;font-size:14px;font-weight:600;margin:0 0 8px}
+.doc h1{font-family:var(--f-num);font-size:clamp(32px,4vw,46px);font-weight:700;margin-bottom:12px;color:#fff}
+.doc h2{font-size:20px;font-weight:600;margin:34px 0 12px;color:#fff;font-family:var(--f-ui)}
+.doc p{color:#AEB8B6;line-height:1.6;max-width:62ch;margin:0 0 14px;font-size:15px}
+.doc strong{color:#fff}
+.doc ul{margin:0 0 14px;padding-left:18px;color:#AEB8B6;font-size:15px;line-height:1.6}
+.doc li{margin-bottom:6px}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.node{border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:7px 12px;font-size:13px;font-weight:600;color:#fff}
+.node.entry{border-color:#7C93F0;color:#7C93F0}
+.arrow{color:#77817F;font-size:13px}
+.tok{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px;margin-bottom:18px}
+.sw{border:1px solid rgba(255,255,255,.16);border-radius:8px;padding:10px;font-size:12px;line-height:1.4;color:#fff}
+.sw i{display:block;height:24px;border-radius:4px;margin-bottom:8px}
+.sw span{color:#97A09E}
+
+/* Phone */
+.phone{position:sticky;top:32px;width:390px;height:800px;background:var(--mist);
+  border-radius:38px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 40px 80px -20px rgba(0,0,0,.6)}
+.status{display:flex;justify-content:space-between;padding:14px 24px 4px;font-size:13px;font-weight:600;flex:none}
+.view{flex:1;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+.view::-webkit-scrollbar{display:none}
+.pad{padding:0 20px}
+
+/* Header */
+.head{display:flex;align-items:center;justify-content:space-between;padding:10px 20px 6px}
+.head .date{font-size:13px;color:var(--ink-2);font-weight:600;margin-bottom:2px}
+.head h1{font-size:26px;font-weight:700}
+.avatar{width:42px;height:42px;border-radius:50%;background:var(--indigo);color:#fff;
+  display:grid;place-items:center;font-family:var(--f-num);font-weight:600;font-size:16px;flex:none}
+
+/* Today's call */
+.call{margin:14px 20px 0;background:var(--card);border-radius:var(--r-lg);padding:18px;border:1px solid var(--line)}
+.call .tag{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:10px}
+.call .tag i{width:8px;height:8px;border-radius:50%;display:block}
+.call h2{font-size:34px;font-weight:700;margin-bottom:6px}
+.call p{margin:0;font-size:14.5px;line-height:1.5;color:var(--ink-2)}
+.call .go{margin-top:16px;display:flex;gap:9px}
+
+.btn{background:var(--indigo);color:#fff;font-weight:600;font-size:15.5px;padding:13px 20px;
+  border-radius:var(--r-full);text-align:center;min-height:46px;display:inline-flex;align-items:center;justify-content:center}
+.btn.wide{flex:1}
+.btn.ghost{background:none;color:var(--ink);border:1px solid var(--line)}
+.btn.quiet{background:var(--indigo-soft);color:var(--indigo)}
+.btn:active{transform:scale(.98)}
+
+/* Signal tiles */
+.signals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 20px 0}
+.sig{background:var(--card);border:1px solid var(--line);border-radius:var(--r-md);padding:13px 12px}
+.sig dt{font-size:11.5px;color:var(--ink-2);font-weight:600;margin-bottom:6px}
+.sig dd{margin:0;font-family:var(--f-num);font-size:21px;font-weight:600;line-height:1}
+.sig dd small{font-size:12px;font-weight:500;color:var(--ink-2);margin-left:2px}
+.sig .sub{font-size:11px;color:var(--ink-2);margin-top:5px}
+
+/* Section titles */
+.sec{display:flex;justify-content:space-between;align-items:baseline;padding:26px 20px 10px}
+.sec h2{font-size:18px;font-weight:600}
+.sec span,.sec button{font-size:13px;color:var(--ink-2);font-weight:600}
+.sec button{color:var(--indigo)}
+
+/* Week ribbon */
+.ribbon{display:flex;gap:6px;padding:0 20px;align-items:flex-end}
+.ribbon button{flex:1;text-align:center}
+.ribbon .bar{height:74px;display:flex;align-items:flex-end;margin-bottom:6px}
+.ribbon .bar i{display:block;width:100%;border-radius:6px;min-height:5px}
+.ribbon b{display:block;font-size:11.5px;font-weight:600;color:var(--ink-2)}
+.ribbon button[aria-pressed="true"] b{color:var(--ink)}
+.ribbon button[aria-pressed="true"] .bar i{outline:2px solid var(--ink);outline-offset:2px}
+.daynote{margin:14px 20px 0;background:var(--card);border:1px solid var(--line);border-radius:var(--r-md);
+  padding:13px 15px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.daynote b{font-family:var(--f-num);font-size:15px;font-weight:600;display:block}
+.daynote span{font-size:12.5px;color:var(--ink-2)}
+.pill{border-radius:var(--r-full);padding:5px 11px;font-size:11.5px;font-weight:600;color:#fff;flex:none}
+
+/* Legend */
+.legend{display:flex;flex-wrap:wrap;gap:12px;padding:12px 20px 0;font-size:11.5px;color:var(--ink-2);font-weight:600}
+.legend span{display:flex;align-items:center;gap:5px}
+.legend i{width:9px;height:9px;border-radius:3px;display:block}
+
+/* Session cards */
+.slist{padding:0 20px}
+.session{background:var(--card);border:1px solid var(--line);border-radius:var(--r-md);
+  padding:14px 15px;margin-bottom:10px;display:flex;align-items:center;gap:13px;width:100%}
+.session .dot{width:38px;height:38px;border-radius:12px;flex:none;display:grid;place-items:center}
+.session .dot svg{width:19px;height:19px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.session .t{flex:1;min-width:0}
+.session b{display:block;font-family:var(--f-num);font-size:16px;font-weight:600;margin-bottom:2px}
+.session span{font-size:12.5px;color:var(--ink-2)}
+.session .go{font-size:13px;font-weight:600;color:var(--indigo);flex:none}
+
+/* Chips */
+.chips{display:flex;gap:8px;overflow-x:auto;padding:0 20px 4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);border-radius:var(--r-full);padding:9px 14px;
+  font-size:13px;font-weight:600;color:var(--ink-2);background:var(--card);min-height:40px}
+.chip[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* Active session */
+.active{min-height:100%;display:flex;flex-direction:column;background:var(--ink);color:#fff;padding:26px 24px 24px}
+.active .kind{font-size:13px;font-weight:600;opacity:.7;margin-bottom:auto}
+.active .clock{font-family:var(--f-num);font-size:76px;font-weight:600;letter-spacing:-.04em;line-height:1;
+  font-variant-numeric:tabular-nums;margin:30px 0 8px}
+.active .state{font-size:14px;opacity:.7;margin-bottom:30px}
+.active .mets{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:auto;
+  border-top:1px solid rgba(255,255,255,.16);border-bottom:1px solid rgba(255,255,255,.16);padding:18px 0}
+.active .mets dt{font-size:11.5px;opacity:.6;font-weight:600;margin-bottom:5px}
+.active .mets dd{margin:0;font-family:var(--f-num);font-size:20px;font-weight:600}
+.active .ctrls{display:flex;gap:11px;margin-top:30px}
+.active .ctrls .btn{flex:1}
+.active .ctrls .hold{background:#fff;color:var(--ink)}
+.active .ctrls .stop{background:rgba(255,255,255,.14);color:#fff}
+
+/* Log form */
+.logform{padding:0 20px}
+.logform label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-2);margin:18px 0 8px}
+.effortpick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.effortpick button{border:1px solid var(--line);border-radius:var(--r-md);padding:11px 4px;text-align:center;background:var(--card)}
+.effortpick button b{display:block;font-size:13px;font-weight:600;margin-top:6px}
+.effortpick button i{width:14px;height:14px;border-radius:5px;display:block;margin:0 auto}
+.effortpick button[aria-pressed="true"]{border-color:var(--ink);border-width:2px;padding:10px 3px}
+.note{width:100%;font:inherit;font-size:15px;border:1px solid var(--line);border-radius:var(--r-md);
+  padding:12px 13px;background:var(--card);resize:none;min-height:76px;color:var(--ink)}
+.note:focus{outline:none;border-color:var(--indigo)}
+
+/* Progress */
+.balance{margin:0 20px;background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px}
+.balance h3{font-size:17px;margin-bottom:5px}
+.balance p{margin:0 0 18px;font-size:14px;line-height:1.5;color:var(--ink-2)}
+.beam{position:relative;height:8px;border-radius:4px;margin:0 4px 10px;
+  background:linear-gradient(90deg,var(--rest) 0%,var(--easy) 32%,var(--easy) 62%,var(--steady) 82%,var(--hard) 100%)}
+.beam .mark{position:absolute;top:-7px;width:5px;height:22px;border-radius:3px;background:var(--ink);
+  border:2px solid var(--card);transform:translateX(-50%)}
+.beamlab{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-2);font-weight:600;padding:0 2px}
+.weeks{display:flex;gap:8px;align-items:flex-end;padding:0 20px;height:132px;position:relative}
+.weeks .band{position:absolute;left:20px;right:20px;background:var(--indigo-soft);border-radius:6px}
+.weeks button{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;position:relative;z-index:1}
+.weeks i{display:block;width:100%;border-radius:6px;background:var(--ink)}
+.weeks b{font-size:11px;color:var(--ink-2);font-weight:600;text-align:center;margin-top:6px}
+.weeks button:last-child i{background:var(--indigo)}
+.split{padding:0 20px}
+.split div{padding:11px 0;border-top:1px solid var(--line)}
+.split .r{display:flex;justify-content:space-between;font-size:14px;margin-bottom:7px}
+.split .r b{font-weight:600}
+.split .r span{color:var(--ink-2)}
+.split .track{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.split .track i{display:block;height:100%;border-radius:3px}
+
+/* Profile */
+.prof{text-align:center;padding:20px 20px 0}
+.prof .big{width:78px;height:78px;border-radius:50%;background:var(--indigo);color:#fff;
+  display:grid;place-items:center;font-family:var(--f-num);font-size:28px;font-weight:600;margin:0 auto 12px}
+.prof h2{font-size:24px;font-weight:700;margin-bottom:3px}
+.prof p{margin:0;font-size:13.5px;color:var(--ink-2)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:20px 20px 0}
+.stats div{background:var(--card);border:1px solid var(--line);border-radius:var(--r-md);padding:14px 10px;text-align:center}
+.stats dt{font-size:11px;color:var(--ink-2);font-weight:600;margin-bottom:5px}
+.stats dd{margin:0;font-family:var(--f-num);font-size:22px;font-weight:600}
+.rows{padding:0 20px}
+.rowitem{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 0;border-top:1px solid var(--line);width:100%}
+.rowitem .l b{display:block;font-size:15px;font-weight:600;margin-bottom:2px}
+.rowitem .l span{font-size:12.5px;color:var(--ink-2);line-height:1.45;display:block;max-width:44ch}
+.rowitem .v{font-size:14px;color:var(--ink-2);font-weight:600;flex:none}
+.toggle{width:48px;height:28px;border-radius:14px;background:var(--line);position:relative;flex:none;transition:background .16s}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;
+  background:#fff;transition:transform .16s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle[aria-pressed="true"]{background:var(--indigo)}
+.toggle[aria-pressed="true"]::after{transform:translateX(20px)}
+
+/* Tab bar */
+.tabs{flex:none;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);
+  background:var(--card);padding:8px 4px 18px}
+.tab{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;color:var(--ink-2);
+  font-size:11px;font-weight:600;min-height:44px;text-align:center}
+.tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tab[aria-selected="true"]{color:var(--indigo)}
+
+.toast{position:absolute;left:50%;transform:translateX(-50%);bottom:96px;background:var(--ink);color:#fff;
+  font-size:13.5px;font-weight:600;padding:11px 18px;border-radius:var(--r-full);opacity:0;pointer-events:none;
+  transition:opacity .2s,transform .2s;z-index:30;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
+
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.view>*{animation:fade .16s ease-out}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr;justify-items:center}
+  .phone{position:relative;top:0;width:100%;max-width:390px;height:min(800px,86vh)}
+  .doc{max-width:560px}
+}
+  </style>
+ </head>
+ <body>
+  <div class="wrap">
+   <div aria-label="Cadence prototype" class="phone" role="application">
+    <div class="status">
+     <span>
+      9:41
+     </span>
+     <span>
+      ▮▮▮
+     </span>
+    </div>
+    <div class="view" id="view">
+    </div>
+    <nav aria-label="Main" class="tabs" id="tabs" role="tablist">
+    </nav>
+    <div class="toast" id="toast" role="status">
+    </div>
+   </div>
+   <div class="doc">
+    <p class="kicker">
+     Task 4: fitness and wellness
+    </p>
+    <h1>
+     Cadence
+    </h1>
+    <p>
+     Built on rhythm rather than accumulation. Most fitness apps are maximisers: a bigger number every week, an unbroken streak, and a quiet sense of failure when you miss a day. That pattern is exactly where these apps stop being wellness products, so this one is designed against it.
+    </p>
+    <h2>
+     The three decisions that shape everything
+    </h2>
+    <ul>
+     <li>
+      <strong>
+       A rest day is a completed day.
+      </strong>
+      Rest has its own colour in the effort scale and appears in the week ribbon as a filled bar, not a gap. The home screen can tell you to do nothing, and say why.
+     </li>
+     <li>
+      <strong>
+       Balance replaces the progress ring.
+      </strong>
+      A ring always argues for more. The balance beam has a middle you are trying to sit in, so both too little and too much read as something to correct.
+     </li>
+     <li>
+      <strong>
+       Consistency instead of streaks.
+      </strong>
+      Progress counts days moved per week, which survives a missed Tuesday. Streaks exist but are off by default, in the profile, with a line explaining why.
+     </li>
+    </ul>
+    <h2>
+     What is deliberately absent
+    </h2>
+    <p>
+     No weight, no body composition, no calorie counting. Those are the features that turn a wellness app into something people use against themselves, and removing them costs this design nothing: movement, sleep, energy and consistency already answer the brief. If a reviewer asks, that is the answer, and it is a stronger one than a food diary would have been.
+    </p>
+    <h2>
+     User flow
+    </h2>
+    <div class="flow">
+     <span class="node entry">
+      Today
+     </span>
+     <span class="arrow">
+      →
+     </span>
+     <span class="node">
+      Start session
+     </span>
+     <span class="arrow">
+      →
+     </span>
+     <span class="node">
+      Active
+     </span>
+     <span class="arrow">
+      →
+     </span>
+     <span class="node">
+      Log effort
+     </span>
+     <span class="arrow">
+      →
+     </span>
+     <span class="node">
+      Today, updated
+     </span>
+    </div>
+    <div class="flow">
+     <span class="node entry">
+      Today
+     </span>
+     <span class="arrow">
+      →
+     </span>
+     <span class="node">
+      Week ribbon
+     </span>
+     <span class="arrow">
+      →
+     </span>
+     <span class="node">
+      Progress
+     </span>
+     <span class="arrow">
+      →
+     </span>
+     <span class="node">
+      Session history
+     </span>
+    </div>
+    <div class="flow">
+     <span class="node entry">
+      Move
+     </span>
+     <span class="arrow">
+      →
+     </span>
+     <span class="node">
+      Pick a session
+     </span>
+     <span class="arrow">
+      →
+     </span>
+     <span class="node">
+      Active
+     </span>
+    </div>
+    <div class="flow">
+     <span class="node entry">
+      Profile
+     </span>
+     <span class="arrow">
+      →
+     </span>
+     <span class="node">
+      Goal
+     </span>
+     <span class="arrow">
+      →
+     </span>
+     <span class="node">
+      Today reflects it
+     </span>
+    </div>
+    <h2>
+     Colour
+    </h2>
+    <div class="tok">
+     <div class="sw">
+      <i style="background:#F1F4F3">
+      </i>
+      <b>
+       Mist
+      </b>
+      <br/>
+      <span>
+       #F1F4F3 background
+      </span>
+     </div>
+     <div class="sw">
+      <i style="background:#FFFFFF">
+      </i>
+      <b>
+       Card
+      </b>
+      <br/>
+      <span>
+       #FFFFFF
+      </span>
+     </div>
+     <div class="sw">
+      <i style="background:#0F1614">
+      </i>
+      <b>
+       Ink
+      </b>
+      <br/>
+      <span>
+       #0F1614
+      </span>
+     </div>
+     <div class="sw">
+      <i style="background:#2B4BD8">
+      </i>
+      <b>
+       Indigo
+      </b>
+      <br/>
+      <span>
+       #2B4BD8 action
+      </span>
+     </div>
+     <div class="sw">
+      <i style="background:#8E9AA8">
+      </i>
+      <b>
+       Rest
+      </b>
+      <br/>
+      <span>
+       #8E9AA8 effort
+      </span>
+     </div>
+     <div class="sw">
+      <i style="background:#3E9E6E">
+      </i>
+      <b>
+       Easy
+      </b>
+      <br/>
+      <span>
+       #3E9E6E effort
+      </span>
+     </div>
+     <div class="sw">
+      <i style="background:#D1912B">
+      </i>
+      <b>
+       Steady
+      </b>
+      <br/>
+      <span>
+       #D1912B effort
+      </span>
+     </div>
+     <div class="sw">
+      <i style="background:#C4553A">
+      </i>
+      <b>
+       Hard
+      </b>
+      <br/>
+      <span>
+       #C4553A effort
+      </span>
+     </div>
+    </div>
+    <p>
+     <strong>
+      The rule:
+     </strong>
+     indigo is the only thing you can press. The four effort colours are data and report how hard a session was, nothing else. Red means hard, never wrong, which matters in an app where people are quick to read colour as judgement.
+    </p>
+    <h2>
+     Type
+    </h2>
+    <ul>
+     <li>
+      <strong>
+       Space Grotesk
+      </strong>
+      600/700 for every number and heading. Tabular figures, so the live timer does not jitter as digits change.
+     </li>
+     <li>
+      <strong>
+       Instrument Sans
+      </strong>
+      400/500/600 for all supporting text.
+     </li>
+     <li>
+      Scale: 76 for the running timer, then 34 / 26 / 21 / 18 / 16 / 14.5 / 12.5 / 11.5.
+     </li>
+    </ul>
+    <h2>
+     Frames to build
+    </h2>
+    <ul>
+     <li>
+      <strong>
+       Today
+      </strong>
+      : the three calls, train, easy and rest, since the card changes colour and copy in each.
+     </li>
+     <li>
+      <strong>
+       Move
+      </strong>
+      : session library, plus the quick-log chips.
+     </li>
+     <li>
+      <strong>
+       Active session
+      </strong>
+      : running and paused. The only dark screen in the app.
+     </li>
+     <li>
+      <strong>
+       Log effort
+      </strong>
+      : the post-session sheet.
+     </li>
+     <li>
+      <strong>
+       Progress
+      </strong>
+      : balance beam, six-week chart, activity split.
+     </li>
+     <li>
+      <strong>
+       Profile
+      </strong>
+      : goals and preferences, with the streak toggle in both states.
+     </li>
+    </ul>
+    <p>
+     That is 11 frames. The three Today states are worth the extra effort, because a dashboard that only ever says the same thing is the most common weakness in this brief.
+    </p>
+   </div>
+  </div>
+  <script>
+   /* Data. effort: 0 rest, 1 easy, 2 steady, 3 hard */
+const USER={name:"Amara Njeri",initials:"AN",since:"March 2026",goal:4};
+
+const EFFORT=[
+ {n:"Rest",c:"var(--rest)"},{n:"Easy",c:"var(--easy)"},
+ {n:"Steady",c:"var(--steady)"},{n:"Hard",c:"var(--hard)"}
+];
+
+const WEEK=[
+ {d:"Mon",min:38,effort:1,type:"Easy run"},
+ {d:"Tue",min:52,effort:2,type:"Strength"},
+ {d:"Wed",min:0,effort:0,type:"Rest"},
+ {d:"Thu",min:64,effort:3,type:"Intervals"},
+ {d:"Fri",min:30,effort:1,type:"Mobility"},
+ {d:"Sat",min:0,effort:0,type:"Rest"},
+ {d:"Sun",min:0,effort:0,type:"Not logged"}
+];
+
+const WEEKS=[168,205,190,236,152,184];
+
+const LIBRARY=[
+ {n:"Easy run",dur:35,effort:1,note:"Conversational pace, nothing to prove",icon:"run"},
+ {n:"Full body strength",dur:45,effort:2,note:"Six movements, three rounds",icon:"lift"},
+ {n:"Intervals",dur:32,effort:3,note:"6 x 3 min hard, 2 min float",icon:"run"},
+ {n:"Mobility flow",dur:20,effort:1,note:"Hips and shoulders, floor based",icon:"flow"},
+ {n:"Long walk",dur:50,effort:1,note:"Counts fully. It always did",icon:"walk"},
+ {n:"Recovery breathing",dur:10,effort:0,note:"Sitting or lying down",icon:"flow"}
+];
+
+const HISTORY=[
+ {d:"Yesterday",n:"Mobility flow",min:30,effort:1},
+ {d:"Thursday",n:"Intervals",min:64,effort:3},
+ {d:"Tuesday",n:"Full body strength",min:52,effort:2},
+ {d:"Monday",n:"Easy run",min:38,effort:1},
+ {d:"Last Sunday",n:"Long walk",min:55,effort:1}
+];
+
+const SPLIT=[["Running",42,"var(--hard)"],["Strength",28,"var(--steady)"],["Walking",19,"var(--easy)"],["Mobility",11,"var(--rest)"]];
+
+const ICO={
+ today:`<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>`,
+ move:`<path d="M4 12h3l2-5 4 10 2-5h5"/>`,
+ chart:`<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>`,
+ user:`<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 3.1-5.5 7-5.5s7 1.9 7 5.5"/>`,
+ run:`<circle cx="14" cy="5" r="1.6"/><path d="m6 20 3-5 3-2-1-4 4 2 3 1M9 13l-3-1"/>`,
+ lift:`<path d="M4 9v6M8 7v10M16 7v10M20 9v6M8 12h8"/>`,
+ flow:`<path d="M4 14c3 0 3-4 6-4s3 4 6 4 3-4 4-4"/><circle cx="12" cy="5" r="1.6"/>`,
+ walk:`<circle cx="13" cy="5" r="1.6"/><path d="m8 21 3-6 2-3-1-4 3 3 3 1M11 12l-3 3"/>`,
+ back:`<path d="m14 6-6 6 6 6"/>`
+};
+
+/* State */
+const state={
+ screen:"today", pickedDay:null, template:null,
+ running:false, seconds:0, logEffort:2,
+ streaks:false, reminders:true, goal:USER.goal
+};
+
+const view=document.getElementById("view"), tabs=document.getElementById("tabs"), toast=document.getElementById("toast");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const avg=Math.round(WEEKS.reduce((a,b)=>a+b,0)/WEEKS.length);
+const mins=()=>WEEK.reduce((a,b)=>a+b.min,0);
+const moved=()=>WEEK.filter(d=>d.min>0).length;
+const ratio=()=>mins()/avg;
+
+let tick=null;
+function go(s){ if(s!=="active"&&tick){clearInterval(tick);tick=null;state.running=false;} state.screen=s; render(); view.scrollTop=0; }
+let tt; function say(m){toast.textContent=m;toast.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>toast.classList.remove("show"),1800);}
+const mmss=s=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+
+/* Today's call is derived, not hardcoded */
+function call(){
+ const yest=WEEK[4], hardRecent=WEEK.slice(2,5).some(d=>d.effort===3), m=mins();
+ if(ratio()>1.25) return {word:"Rest",e:0,why:"You are 25 percent above your usual week already. Taking today off is what makes next week possible."};
+ if(hardRecent&&yest.effort>=2) return {word:"Easy",e:1,why:"Two firm days behind you. Something gentle keeps the rhythm without adding load."};
+ if(m<avg*0.6) return {word:"Train",e:2,why:"A light week so far, and you are fresh. Good day for the session you have been putting off."};
+ return {word:"Easy",e:1,why:"You are sitting right in your usual range. Keep it ticking over."};
+}
+
+/* Components */
+const legend=()=>`<div class="legend">${EFFORT.map(e=>`<span><i style="background:${e.c}"></i>${e.n}</span>`).join("")}</div>`;
+
+const ribbon=()=>{
+ const max=Math.max(...WEEK.map(d=>d.min),60);
+ return `<div class="ribbon">${WEEK.map((d,i)=>`
+  <button aria-pressed="${state.pickedDay===i}" aria-label="${d.d}, ${d.min} minutes, ${EFFORT[d.effort].n}"
+    onclick="state.pickedDay = state.pickedDay===${i} ? null : ${i}; render()">
+    <span class="bar"><i style="height:${d.min?Math.round(d.min/max*100):8}%;background:${EFFORT[d.effort].c}"></i></span>
+    <b>${d.d[0]}</b></button>`).join("")}</div>`;
+};
+
+const sessionRow=(s,onclick)=>`
+ <button class="session" onclick="${onclick}">
+   <span class="dot" style="background:${EFFORT[s.effort].c}"><svg viewBox="0 0 24 24">${ICO[s.icon]||ICO.run}</svg></span>
+   <span class="t"><b>${esc(s.n)}</b><span>${s.dur} min, ${EFFORT[s.effort].n.toLowerCase()}. ${esc(s.note)}</span></span>
+   <span class="go">Start</span>
+ </button>`;
+
+/* Screens */
+function today(){
+ const c=call(), d=state.pickedDay!==null?WEEK[state.pickedDay]:null;
+ const pick=LIBRARY.find(l=>l.effort===(c.e||1))||LIBRARY[0];
+
+ return `
+ <div class="head">
+   <div><div class="date">Monday 14 September</div><h1>Morning, ${USER.name.split(" ")[0]}</h1></div>
+   <button class="avatar" aria-label="Profile" onclick="go('profile')">${USER.initials}</button>
+ </div>
+
+ <div class="call">
+   <span class="tag"><i style="background:${EFFORT[c.e].c}"></i>Today</span>
+   <h2>${c.word}</h2>
+   <p>${c.why}</p>
+   <div class="go">
+     ${c.e===0
+       ? `<button class="btn quiet wide" onclick="say('Rest day logged. That is a full day.')">Mark rest day</button>`
+       : `<button class="btn wide" onclick="state.template=${LIBRARY.indexOf(pick)};go('active')">Start ${pick.n.toLowerCase()}</button>
+          <button class="btn ghost" onclick="go('move')">Something else</button>`}
+   </div>
+ </div>
+
+ <dl class="signals">
+   <div class="sig"><dt>This week</dt><dd>${mins()}<small>min</small></dd><div class="sub">usual is ${avg}</div></div>
+   <div class="sig"><dt>Days moved</dt><dd>${moved()}<small>/${state.goal}</small></dd><div class="sub">your goal</div></div>
+   <div class="sig"><dt>Slept</dt><dd>7.4<small>h</small></dd><div class="sub">steady week</div></div>
+ </dl>
+
+ <div class="sec"><h2>Your week</h2><button onclick="go('progress')">Progress</button></div>
+ ${ribbon()}
+ ${d?`<div class="daynote">
+    <span><b>${d.d}</b><span>${d.min?`${d.type}, ${d.min} minutes`:"Rest day, fully counted"}</span></span>
+    <span class="pill" style="background:${EFFORT[d.effort].c}">${EFFORT[d.effort].n}</span>
+  </div>`:legend()}
+
+ <div class="sec"><h2>Recent</h2></div>
+ <div class="slist">
+  ${HISTORY.slice(0,3).map(h=>`
+   <div class="session">
+     <span class="dot" style="background:${EFFORT[h.effort].c}"><svg viewBox="0 0 24 24">${ICO.run}</svg></span>
+     <span class="t"><b>${esc(h.n)}</b><span>${esc(h.d)}, ${h.min} minutes</span></span>
+     <span class="go" style="color:var(--ink-2)">${EFFORT[h.effort].n}</span>
+   </div>`).join("")}
+ </div>
+ <div style="height:20px"></div>`;
+}
+
+function move(){
+ return `
+ <div class="head"><div><div class="date">Pick anything</div><h1>Move</h1></div></div>
+ <div style="padding:4px 20px 14px;color:var(--ink-2);font-size:14px;line-height:1.5">
+   Sessions are suggestions, not prescriptions. Swap, shorten or skip without it counting against you.</div>
+ <div class="sec"><h2>Sessions</h2><span>${LIBRARY.length} saved</span></div>
+ <div class="slist">${LIBRARY.map((s,i)=>sessionRow(s,`state.template=${i};go('active')`)).join("")}</div>
+ <div class="sec"><h2>Log something already done</h2></div>
+ <div class="chips">
+  ${["Walk","Strength","Run","Yoga","Swim","Cycle"].map(t=>
+    `<button class="chip" onclick="state.template=0;state.seconds=1800;go('log')">${t}</button>`).join("")}
+ </div>
+ <div style="height:24px"></div>`;
+}
+
+function active(){
+ const t=LIBRARY[state.template||0];
+ if(!tick&&state.running) tick=setInterval(()=>{
+   state.seconds++;
+   const el=document.getElementById("clock");
+   if(el) el.textContent=mmss(state.seconds); else {clearInterval(tick);tick=null;}
+ },1000);
+
+ return `
+ <div class="active">
+   <div class="kind">${esc(t.n)}, target ${t.dur} min</div>
+   <div class="clock" id="clock">${mmss(state.seconds)}</div>
+   <div class="state">${state.running?"Running":state.seconds?"Paused":"Ready when you are"}</div>
+   <dl class="mets">
+     <div><dt>Effort</dt><dd>${EFFORT[t.effort].n}</dd></div>
+     <div><dt>Target</dt><dd>${t.dur}:00</dd></div>
+     <div><dt>Done</dt><dd>${Math.min(100,Math.round(state.seconds/(t.dur*60)*100))}%</dd></div>
+   </dl>
+   <div class="ctrls">
+     <button class="btn hold" onclick="state.running=!state.running; if(!state.running&&tick){clearInterval(tick);tick=null;} render()">
+       ${state.running?"Pause":state.seconds?"Resume":"Start"}</button>
+     <button class="btn stop" onclick="if(tick){clearInterval(tick);tick=null;} state.running=false; go('log')">Finish</button>
+   </div>
+ </div>`;
+}
+
+function log(){
+ const t=LIBRARY[state.template||0];
+ return `
+ <div class="head">
+   <div><div class="date">${Math.max(1,Math.round(state.seconds/60))} minutes</div><h1>${esc(t.n)}</h1></div>
+   <button class="avatar" style="background:var(--line);color:var(--ink)" aria-label="Back" onclick="go('active')">
+     <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2">${ICO.back}</svg></button>
+ </div>
+ <div class="logform">
+   <label>How did that feel?</label>
+   <div class="effortpick">
+     ${EFFORT.map((e,i)=>`<button aria-pressed="${state.logEffort===i}" onclick="state.logEffort=${i};render()">
+       <i style="background:${e.c}"></i><b>${e.n}</b></button>`).join("")}
+   </div>
+   <label for="n">Anything to remember</label>
+   <textarea class="note" id="n" placeholder="Legs heavy for the first ten minutes, fine after"></textarea>
+   <label>This session</label>
+   <dl class="signals" style="padding:0">
+     <div class="sig"><dt>Time</dt><dd>${Math.max(1,Math.round(state.seconds/60))}<small>min</small></dd></div>
+     <div class="sig"><dt>Effort</dt><dd style="font-size:17px">${EFFORT[state.logEffort].n}</dd></div>
+     <div class="sig"><dt>Week</dt><dd>${mins()+Math.round(state.seconds/60)}<small>min</small></dd></div>
+   </dl>
+   <div style="height:22px"></div>
+   <button class="btn" style="width:100%" onclick="state.seconds=0;go('today');say('Saved. Nice work.')">Save session</button>
+   <button class="btn ghost" style="width:100%;margin-top:10px" onclick="state.seconds=0;go('today')">Discard</button>
+ </div>
+ <div style="height:24px"></div>`;
+}
+
+function progress(){
+ const r=ratio(), pos=Math.max(4,Math.min(96,r*50));
+ const verdict=r>1.25?["Above your range","You have done more than usual this week. Not a problem once, but two weeks of this is how people get hurt."]
+   :r<0.6?["Below your range","A quieter week than normal. Nothing to fix unless you want to, and plenty of room if you do."]
+   :["In your range","This week sits close to your usual load. This is the part that actually compounds."];
+ const maxw=Math.max(...WEEKS);
+
+ return `
+ <div class="head"><div><div class="date">Last six weeks</div><h1>Progress</h1></div></div>
+
+ <div class="balance">
+   <h3>${verdict[0]}</h3>
+   <p>${verdict[1]}</p>
+   <div class="beam"><span class="mark" style="left:${pos}%"></span></div>
+   <div class="beamlab"><span>Too little</span><span>Sustainable</span><span>Too much</span></div>
+ </div>
+
+ <div class="sec"><h2>Minutes per week</h2><span>usual ${avg}</span></div>
+ <div class="weeks">
+   <span class="band" style="bottom:${Math.round(avg*0.8/maxw*100)}%;height:${Math.round(avg*0.45/maxw*100)}%"></span>
+   ${WEEKS.map((w,i)=>`<button aria-label="Week ${i+1}, ${w} minutes">
+     <i style="height:${Math.round(w/maxw*88)}%"></i><b>${i===WEEKS.length-1?"Now":"W"+(i+1)}</b></button>`).join("")}
+ </div>
+ <div style="padding:12px 20px 0;color:var(--ink-2);font-size:12.5px;line-height:1.5">
+   The shaded band is your sustainable range, worked out from your own history rather than a general target.</div>
+
+ <div class="sec"><h2>Consistency</h2></div>
+ <div style="padding:0 20px;color:var(--ink-2);font-size:14.5px;line-height:1.55">
+   You have moved <b style="color:var(--ink)">${moved()} days</b> this week and averaged
+   <b style="color:var(--ink)">3.8 days</b> over six weeks. Missing a day does not reset anything here.</div>
+
+ <div class="sec"><h2>Where the time went</h2></div>
+ <div class="split">
+   ${SPLIT.map(([n,p,c])=>`<div>
+     <div class="r"><b>${n}</b><span>${p}%</span></div>
+     <div class="track"><i style="width:${p}%;background:${c}"></i></div></div>`).join("")}
+ </div>
+
+ <div class="sec"><h2>Sessions</h2></div>
+ <div class="slist">
+  ${HISTORY.map(h=>`<div class="session">
+    <span class="dot" style="background:${EFFORT[h.effort].c}"><svg viewBox="0 0 24 24">${ICO.run}</svg></span>
+    <span class="t"><b>${esc(h.n)}</b><span>${esc(h.d)}, ${h.min} minutes</span></span>
+    <span class="go" style="color:var(--ink-2)">${EFFORT[h.effort].n}</span></div>`).join("")}
+ </div>
+ <div style="height:20px"></div>`;
+}
+
+function profile(){
+ return `
+ <div class="prof">
+   <div class="big">${USER.initials}</div>
+   <h2>${esc(USER.name)}</h2>
+   <p>Moving with Cadence since ${USER.since}</p>
+ </div>
+ <dl class="stats">
+   <div><dt>Sessions</dt><dd>118</dd></div>
+   <div><dt>Hours</dt><dd>84</dd></div>
+   <div><dt>Weeks active</dt><dd>26</dd></div>
+ </dl>
+
+ <div class="sec"><h2>Your goal</h2></div>
+ <div class="rows">
+   <div class="rowitem" style="border-top:0">
+     <span class="l"><b>Move ${state.goal} days a week</b>
+       <span>Days, not minutes. A ten minute walk counts the same as an hour.</span></span>
+     <span style="display:flex;gap:6px;flex:none">
+       ${[3,4,5,6].map(n=>`<button class="chip" aria-pressed="${state.goal===n}" style="min-height:34px;padding:6px 11px"
+         onclick="state.goal=${n};render();say('Goal set to ${n} days')">${n}</button>`).join("")}
+     </span>
+   </div>
+ </div>
+
+ <div class="sec"><h2>Preferences</h2></div>
+ <div class="rows">
+   <button class="rowitem" onclick="state.reminders=!state.reminders;render()">
+     <span class="l"><b>Daily reminder</b><span>One gentle nudge in the morning, never a chase later.</span></span>
+     <span class="toggle" role="switch" aria-checked="${state.reminders}" aria-pressed="${state.reminders}"></span>
+   </button>
+   <button class="rowitem" onclick="state.streaks=!state.streaks;render();say(state.streaks?'Streaks on':'Streaks off')">
+     <span class="l"><b>Show streaks</b>
+       <span>Off by default. Streaks punish the day you rest, which is the day you most needed to.</span></span>
+     <span class="toggle" role="switch" aria-checked="${state.streaks}" aria-pressed="${state.streaks}"></span>
+   </button>
+   <div class="rowitem">
+     <span class="l"><b>Units</b><span>Distance and pace</span></span><span class="v">Metric</span>
+   </div>
+   <div class="rowitem">
+     <span class="l"><b>Connected</b><span>Watch and sleep tracking</span></span><span class="v">1 device</span>
+   </div>
+ </div>
+ ${state.streaks?`<div style="margin:16px 20px 0;background:var(--indigo-soft);border-radius:var(--r-md);padding:14px 15px;
+   font-size:13.5px;color:var(--indigo);font-weight:600">Current streak: 12 days. Rest days keep it alive.</div>`:""}
+ <div style="height:26px"></div>`;
+}
+
+/* Render */
+const SCREENS={today,move,active,log,progress,profile};
+const TABS=[{id:"today",l:"Today",i:ICO.today},{id:"move",l:"Move",i:ICO.move},
+            {id:"progress",l:"Progress",i:ICO.chart},{id:"profile",l:"Profile",i:ICO.user}];
+
+function render(){
+ view.innerHTML=SCREENS[state.screen]();
+ const hide=state.screen==="active";
+ tabs.style.display=hide?"none":"grid";
+ const active=({log:"move",active:"move"})[state.screen]||state.screen;
+ tabs.innerHTML=TABS.map(t=>`<button class="tab" role="tab" aria-selected="${active===t.id}" onclick="go('${t.id}')">
+   <svg viewBox="0 0 24 24">${t.i}</svg>${t.l}</button>`).join("");
+}
+render();
+  </script>
+ </body>
+</html>
